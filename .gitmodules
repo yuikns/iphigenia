@@ -1,0 +1,3 @@
+[submodule "modules/valhalla"]
+	path = modules/valhalla
+	url = git@github.com:yuikns/valhalla.git

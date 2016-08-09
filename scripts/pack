@@ -1,0 +1,4 @@
+#!/bin/bash
+export SBT_EXEC=sbt
+#set -o nounset -o errexit
+$SBT_EXEC assembly

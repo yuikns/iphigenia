@@ -1,0 +1,5 @@
+#!/bin/bash
+export SBT_EXEC=sbt
+#set -o nounset -o errexit
+$SBT_EXEC scalariformFormat 
+cd modules/valhalla/ &&  $SBT_EXEC scalariformFormat
