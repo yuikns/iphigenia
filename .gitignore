@@ -17,5 +17,8 @@ project/plugins/project/
 .worksheet
 .idea
 
+# Data Output
+data/output*
+
 *.DS_Store
 .DS_Store
