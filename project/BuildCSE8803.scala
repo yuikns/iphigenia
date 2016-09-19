@@ -69,6 +69,7 @@ object BuildCSE8803 extends Build {
       //"com.google.guava" % "guava" % "18.0", // string process etc. (snake case for example)
       "org.scalaj" % "scalaj-http_2.11" % "2.2.0",
       "net.ruippeixotog" % "scala-scraper_2.11" % "1.0.0", //: https://github.com/ruippeixotog/scala-scraper
+      "com.hierynomus" % "sshj" % "0.17.2", // for ssh
       "org.scalatest" % "scalatest_2.11" % "2.2.5" % "test"
     ) ++
       hadoopDependencies ++
@@ -96,7 +97,7 @@ object BuildCSE8803 extends Build {
       case PathList("com", "codahale", xs@_*) => MergeStrategy.last
       case PathList("com", "yammer", xs@_*) => MergeStrategy.last
       case "about.html" => MergeStrategy.rename
-      case "META-INF/ECLIPSEF.RSA" => MergeStrategy.last
+      case "META-INF/ECLIPSEF.RSA" => MergeStrategy.discard
       case "META-INF/mailcap" => MergeStrategy.last
       case "META-INF/mimetypes.default" => MergeStrategy.last
       case "META-INF/MANIFEST.MF" => MergeStrategy.discard
@@ -107,7 +108,14 @@ object BuildCSE8803 extends Build {
         //val oldStrategy = (assemblyMergeStrategy in assembly).value
         //oldStrategy(x)
         // p2
-        MergeStrategy.last
+
+        // ignore
+        if(x.startsWith("META-INF/") &&
+          (x.endsWith(".DSA") || x.endsWith(".RSA") || x.endsWith(".SF"))) {
+          MergeStrategy.discard
+        } else {
+          MergeStrategy.last
+        }
     }
   )
   lazy val root = Project(id = id, base = file("."))
