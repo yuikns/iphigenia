@@ -26,4 +26,12 @@ if you are a windows user, please type the above command instead:
 sbt assembly
 ```
 
+## Notice
+
+This is just a small seed to help you quickly initialize a project for course, you can post issue if you have any questions. *DO NOT* upload the real code for you homework.
+
+
+
+
+
 
