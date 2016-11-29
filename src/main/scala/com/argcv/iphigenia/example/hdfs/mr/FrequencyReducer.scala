@@ -1,15 +1,15 @@
-package com.argcv.cse8803.mapreducebasic
+package com.argcv.iphigenia.example.hdfs.mr
 
-import java.lang.{Iterable => JIterable}
+import java.lang.{ Iterable => JIterable }
 
-import org.apache.hadoop.io.{IntWritable, Text}
+import org.apache.hadoop.io.{ IntWritable, Text }
 import org.apache.hadoop.mapreduce.Reducer
 
 import scala.collection.JavaConverters._
 
 /**
-  * @author yu
-  */
+ * @author yu
+ */
 class FrequencyReducer extends Reducer[Text, IntWritable, Text, IntWritable] {
   type Context = Reducer[Text, IntWritable, Text, IntWritable]#Context
 
@@ -18,7 +18,6 @@ class FrequencyReducer extends Reducer[Text, IntWritable, Text, IntWritable] {
     context.write(eventID, new IntWritable(sum))
   }
 }
-
 
 object FrequencyReducer {
   def instance = new FrequencyReducer().getClass

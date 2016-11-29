@@ -16,9 +16,8 @@ project/plugins/project/
 .scala_dependencies
 .worksheet
 .idea
+iphigenia.ipr
+iphigenia.iws
+Iphigenia-
 
-# Data Output
-data/output*
 
-*.DS_Store
-.DS_Store

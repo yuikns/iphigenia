@@ -1,11 +1,11 @@
-package com.argcv.cse8803.mapreducebasic
+package com.argcv.iphigenia.example.hdfs.mr
 
-import org.apache.hadoop.io.{IntWritable, LongWritable, Text}
+import org.apache.hadoop.io.{ IntWritable, LongWritable, Text }
 import org.apache.hadoop.mapreduce.Mapper
 
 /**
-  * @author yu
-  */
+ * @author yu
+ */
 class FrequencyMapper extends Mapper[LongWritable, Text, Text, IntWritable] {
   type Context = Mapper[LongWritable, Text, Text, IntWritable]#Context
 
@@ -15,7 +15,6 @@ class FrequencyMapper extends Mapper[LongWritable, Text, Text, IntWritable] {
     context.write(new Text(eventID), FrequencyMapper.ONE)
   }
 }
-
 
 object FrequencyMapper {
   def instance = new FrequencyMapper().getClass

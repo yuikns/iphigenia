@@ -1,16 +1,16 @@
-package com.argcv.cse8803.mapreducebasic
+package com.argcv.iphigenia.example.hdfs.mr
 
 import com.argcv.valhalla.console.ColorForConsole._
 import com.argcv.valhalla.utils.Awakable
 import org.apache.hadoop.fs.Path
-import org.apache.hadoop.io.{IntWritable, Text}
+import org.apache.hadoop.io.{ IntWritable, Text }
 import org.apache.hadoop.mapreduce.Job
 import org.apache.hadoop.mapreduce.lib.input.FileInputFormat
 import org.apache.hadoop.mapreduce.lib.output.FileOutputFormat
 
 /**
-  * @author yu
-  */
+ * @author yu
+ */
 object FrequencyMapReducer extends Awakable {
 
   def main(args: Array[String]): Unit = {

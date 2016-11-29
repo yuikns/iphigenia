@@ -29,7 +29,6 @@ object CompileSettings extends AutoPlugin {
       options filterNot (_ == "-Ywarn-dead-code") // Allow dead code in tests (to support using mockito).
     },
     parallelExecution in Test := false,
-    unmanagedBase := baseDirectory.value / "project/lib")
-
+    unmanagedBase := baseDirectory.value / "lib")
 }
 

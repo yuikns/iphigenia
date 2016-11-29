@@ -4,23 +4,23 @@
 
     <appender name="FILE"
               class="ch.qos.logback.core.rolling.RollingFileAppender">
-        <file>logs/dvergar.log</file>
+        <file>logs/iphigenia.log</file>
         <append>true</append>
         <rollingPolicy class="ch.qos.logback.core.rolling.TimeBasedRollingPolicy">
             <!-- daily rollover -->
-            <fileNamePattern>logs/dvergar.log.%d{yyyy-MM-dd}.log
+            <fileNamePattern>logs/iphigenia.log.%d{yyyy-MM-dd}.log
             </fileNamePattern>
             <!-- keep 30 days' worth of history -->
             <maxHistory>30</maxHistory>
         </rollingPolicy>
         <encoder>
-            <Pattern>%d %p %t %c - %m -- dvergar said ~%n</Pattern>
+            <Pattern>%d %p %t %c - %m -- iphigenia said ~%n</Pattern>
         </encoder>
     </appender>
 
     <appender name="CONSOLE" class="ch.qos.logback.core.ConsoleAppender">
         <encoder>
-            <Pattern>%d %p %t %c - %m -- dvergar said ~%n</Pattern>
+            <Pattern>%d %p %t %c - %m -- iphigenia said ~%n</Pattern>
         </encoder>
     </appender>
 
