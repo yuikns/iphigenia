@@ -11,7 +11,9 @@ object SparkHelper {
 
   def createSparkContext: SparkContext = createSparkContext("Iphigenia", "local[*]")
 
-  def createSparkContext(appName: String, masterUrl: String = "local[*]", cfg: (SparkConf) => SparkConf = { in => in }): SparkContext = {
+  def createSparkContext(appName: String,
+    masterUrl: String = "local[*]",
+    cfg: (SparkConf) => SparkConf = { in => in }): SparkContext = {
     new SparkContext(sparkConf(appName, masterUrl, cfg))
   }
 
@@ -30,7 +32,9 @@ object SparkHelper {
 
   def createSparkSession: SparkSession = createSparkSession("Iphigenia", "local[*]")
 
-  def createSparkSession(appName: String, masterUrl: String = "local[*]", cfg: (SparkConf) => SparkConf = { in => in }): SparkSession = {
+  def createSparkSession(appName: String,
+    masterUrl: String = "local[*]",
+    cfg: (SparkConf) => SparkConf = { in => in }): SparkSession = {
     SparkSession.builder().config(sparkConf(appName, masterUrl, cfg)).getOrCreate()
   }
 }

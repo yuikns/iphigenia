@@ -38,10 +38,11 @@ object SparkWithDataFrame extends App with SingleMachineFileSystemHelper with Aw
   //  val sparkConf: SparkConf = new SparkConf().setAppName("XGBoost-spark-example")
   //    .set("spark.serializer", "org.apache.spark.serializer.KryoSerializer")
   //    sparkConf.registerKryoClasses(Array(classOf[Booster]))
-  val sqlContext: SparkSession = SparkHelper.createSparkSession(appName = "XGBoost-spark-example", cfg = { in =>
-    in.set("spark.serializer", "org.apache.spark.serializer.KryoSerializer")
-      .registerKryoClasses(Array(classOf[Booster]))
-  })
+  val sqlContext: SparkSession = SparkHelper.createSparkSession(appName = "XGBoost-spark-example",
+    cfg = { in =>
+      in.set("spark.serializer", "org.apache.spark.serializer.KryoSerializer")
+        .registerKryoClasses(Array(classOf[Booster]))
+    })
   //val sqlContext: SQLContext = new SQLContext(new SparkContext(sparkConf))
   // create training and testing dataframes
   val inputTrainPath = XGBoostConf.trainFilePath
