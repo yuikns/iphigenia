@@ -7,15 +7,16 @@ import com.argcv.valhalla.utils.Awakable
 import scala.io.Source
 
 object SocialData extends Awakable {
-  lazy val id2Name: Map[Long, String] = {
-    def getIdAndName(s: String): Option[(Long, String)] = {
-      val arrs = s.split("\\|\\|")
-      if (arrs.length >= 2) {
-        Some((arrs(0).toLong, arrs(1)))
-      } else {
-        None
-      }
+  def getIdAndName(s: String): Option[(Long, String)] = {
+    val arrs = s.split("\\|\\|")
+    if (arrs.length >= 2) {
+      Some((arrs(0).toLong, arrs(1)))
+    } else {
+      None
     }
+  }
+
+  lazy val id2Name: Map[Long, String] = {
     val nameTrain = Source.fromFile(new File("data/smp2016/train/train_info.txt")).
       getLines().toList.flatMap(s => getIdAndName(s))
     val nameTest = Source.fromFile(new File("data/smp2016/test/test_info.txt")).

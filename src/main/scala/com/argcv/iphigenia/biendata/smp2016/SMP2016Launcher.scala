@@ -185,7 +185,8 @@ object XGBoostTrain extends Awakable with SingleMachineFileSystemHelper {
         val scoreSocial = MLModels.trainScores(id).map(_.toFloat).toArray
         val scoreUag = Status.trainUagFeats(id)
         val scoreAddr = Status.trainAddrFeats(id)
-        val scores = scoreSocial ++ scoreUag ++ scoreAddr
+        val scoreName = Name.nameFeats(id)
+        val scores = scoreSocial ++ scoreUag ++ scoreAddr ++ scoreName
         val values = trainLabels(id)
         val alp: LabeledPoint = LabeledPoint.fromDenseVector((values.a.get.v - 1).toFloat, scores)
         val glp: LabeledPoint = LabeledPoint.fromDenseVector((values.g.get.v - 1).toFloat, scores)
@@ -253,7 +254,8 @@ object XGBoostTrain extends Awakable with SingleMachineFileSystemHelper {
     val scoreSocial = MLModels.testScores(id).map(_.toFloat).toArray
     val scoreUag = Status.testUagFeats(id)
     val scoreAddr = Status.testAddrFeats(id)
-    val scores = scoreSocial ++ scoreUag ++ scoreAddr
+    val scoreName = Name.nameFeats(id)
+    val scores = scoreSocial ++ scoreUag ++ scoreAddr ++ scoreName
     val value: Float = 0.0.toFloat
     val alp: LabeledPoint = LabeledPoint.fromDenseVector(value, scores)
     val glp: LabeledPoint = LabeledPoint.fromDenseVector(value, scores)
@@ -289,7 +291,7 @@ object SMP2016Launcher extends Awakable with SingleMachineFileSystemHelper {
 
     logger.info(s"all predicted .. size ${predMap.size}")
 
-    writeLines("/Users/yu/Workspace/comp/iphigenia/data/smp2016/ll/temp.csv") { pw =>
+    writeLines("data/smp2016/ll/temp.csv") { pw =>
       pw.append("uid,age,gender,province\n")
       tasks.foreach { id =>
         pw.append(predMap.getOrElse(id, Info(id)).toString).write("\n")
