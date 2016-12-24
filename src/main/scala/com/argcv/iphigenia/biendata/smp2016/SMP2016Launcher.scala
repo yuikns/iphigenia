@@ -163,7 +163,7 @@ object MLModels extends Awakable with SingleMachineFileSystemHelper {
 }
 
 object XGBoostTrain extends Awakable with SingleMachineFileSystemHelper {
-  var CONF_N_THREAD = 32
+  var CONF_N_THREAD = 64
 
   import java.io.File
   import java.util.concurrent.atomic.AtomicInteger
@@ -305,7 +305,7 @@ object SMP2016Launcher extends Awakable with SingleMachineFileSystemHelper {
   logger.info(s"size of id 2 name: ${id2Name.size}")
   val cnt = new AtomicInteger()
   logger.info("loading ...")
-  val predMap: ParMap[Long, Info] = tasks.par.map { id =>
+  val predMap: Map[Long, Info] = tasks.map { id =>
     //var rel = MLModels.predict(id) //Info(id) //SocialData.predict(id, c)
     val pred: (Int, Int, Int) = XGBoostTrain.predict(id)
     var rel = Info(
