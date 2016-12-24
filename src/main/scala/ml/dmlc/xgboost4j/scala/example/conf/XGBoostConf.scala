@@ -12,6 +12,7 @@ object XGBoostConf {
   lazy val trainFilePath = "data/xgboost/agaricus.txt.train"
   lazy val testFilePath = "data/xgboost/agaricus.txt.test"
   lazy val modelFilePath = "data/xgboost/agaricus.txt.model"
+  lazy val tempModelDir = "data/xgboost/models"
   lazy val outputFilePath = "data/xgboost/agaricus.txt.output"
   lazy val numRound = 10
   lazy val nWorkers = 4
