@@ -163,6 +163,7 @@ object MLModels extends Awakable with SingleMachineFileSystemHelper {
 }
 
 object XGBoostTrain extends Awakable with SingleMachineFileSystemHelper {
+  var CONF_N_THREAD = 32
 
   import java.io.File
   import java.util.concurrent.atomic.AtomicInteger
@@ -198,9 +199,9 @@ object XGBoostTrain extends Awakable with SingleMachineFileSystemHelper {
     val gTrainMax: DMatrix = new DMatrix(glps.toIterator)
     val lTrainMax: DMatrix = new DMatrix(llps.toIterator)
     val resp = (
-      doTrain(aTrainMax, 3, "data/smp2016/xg/model_a", "age", nthread = 128),
-      doTrain(gTrainMax, 2, "data/smp2016/xg/model_g", "gender", nthread = 128),
-      doTrain(lTrainMax, 8, "data/smp2016/xg/model_l", "loc", maxDepth = 20, nthread = 128))
+      doTrain(aTrainMax, 3, "data/smp2016/xg/model_a", "age", nthread = CONF_N_THREAD),
+      doTrain(gTrainMax, 2, "data/smp2016/xg/model_g", "gender", nthread = CONF_N_THREAD),
+      doTrain(lTrainMax, 8, "data/smp2016/xg/model_l", "loc", maxDepth = 10, nthread = CONF_N_THREAD))
     logger.info("train finished")
     resp
   }
