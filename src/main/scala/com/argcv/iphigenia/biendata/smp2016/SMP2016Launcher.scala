@@ -198,9 +198,9 @@ object XGBoostTrain extends Awakable with SingleMachineFileSystemHelper {
     val gTrainMax: DMatrix = new DMatrix(glps.toIterator)
     val lTrainMax: DMatrix = new DMatrix(llps.toIterator)
     val resp = (
-      doTrain(aTrainMax, 3, "data/smp2016/xg/model_a", "age"),
-      doTrain(gTrainMax, 2, "data/smp2016/xg/model_g", "gender"),
-      doTrain(lTrainMax, 8, "data/smp2016/xg/model_l", "loc", maxDepth = 20))
+      doTrain(aTrainMax, 3, "data/smp2016/xg/model_a", "age", nthread = 128),
+      doTrain(gTrainMax, 2, "data/smp2016/xg/model_g", "gender", nthread = 128),
+      doTrain(lTrainMax, 8, "data/smp2016/xg/model_l", "loc", maxDepth = 20, nthread = 128))
     logger.info("train finished")
     resp
   }
