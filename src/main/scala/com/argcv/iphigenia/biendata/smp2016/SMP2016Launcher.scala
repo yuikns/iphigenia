@@ -172,6 +172,13 @@ object XGBoostTrain extends Awakable with SingleMachineFileSystemHelper {
   import ml.dmlc.xgboost4j.LabeledPoint
   import ml.dmlc.xgboost4j.scala.{ Booster, DMatrix, XGBoost }
 
+  implicit class NormalizeFeats(fts: Array[Float]) {
+    def normalize = {
+      val total: Float = fts.sum
+      fts.map(_ / total)
+    }
+  }
+
   lazy val (ab, gb, lb) = {
     logger.info("train starting ...")
     //liblinear
@@ -183,9 +190,9 @@ object XGBoostTrain extends Awakable with SingleMachineFileSystemHelper {
       if (arrs.length >= 4) {
         val id = arrs(0).toLong
         val scoreSocial = MLModels.trainScores(id).map(_.toFloat).toArray
-        val scoreUag = Status.trainUagFeats(id)
-        val scoreAddr = Status.trainAddrFeats(id)
-        val scoreName = Name.nameFeats(id)
+        val scoreUag = Status.trainUagFeats(id).normalize
+        val scoreAddr = Status.trainAddrFeats(id).normalize
+        val scoreName = Name.nameFeats(id).normalize
         val scores = scoreSocial ++ scoreUag ++ scoreAddr ++ scoreName
         val values = trainLabels(id)
         val alp: LabeledPoint = LabeledPoint.fromDenseVector((values.a.get.v - 1).toFloat, scores)
@@ -252,9 +259,9 @@ object XGBoostTrain extends Awakable with SingleMachineFileSystemHelper {
     val llps = ListBuffer[LabeledPoint]()
     //val scores = MLModels.testScores(id).map(_.toFloat).toArray
     val scoreSocial = MLModels.testScores(id).map(_.toFloat).toArray
-    val scoreUag = Status.testUagFeats(id)
-    val scoreAddr = Status.testAddrFeats(id)
-    val scoreName = Name.nameFeats(id)
+    val scoreUag = Status.testUagFeats(id).normalize
+    val scoreAddr = Status.testAddrFeats(id).normalize
+    val scoreName = Name.nameFeats(id).normalize
     val scores = scoreSocial ++ scoreUag ++ scoreAddr ++ scoreName
     val value: Float = 0.0.toFloat
     val alp: LabeledPoint = LabeledPoint.fromDenseVector(value, scores)
