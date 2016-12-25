@@ -185,12 +185,14 @@ object XGBoostTrain extends Awakable with SingleMachineFileSystemHelper {
   }
 
   lazy val (ab, gb, lb) = {
-    logger.info("train starting ...")
+    logger.info("training starting ...")
     //liblinear
     val alps = ListBuffer[LabeledPoint]()
     val glps = ListBuffer[LabeledPoint]()
     val llps = ListBuffer[LabeledPoint]()
-    getLines("data/smp2016/train/train_labels.txt").toList.foreach { s =>
+    logger.info("preparing features ...")
+    val cnt = new AtomicInteger()
+    getLines("data/smp2016/train/train_labels.txt").foreach { s =>
       val arrs = s.split("\\|\\|")
       if (arrs.length >= 4) {
         val id = arrs(0).toLong
@@ -208,8 +210,13 @@ object XGBoostTrain extends Awakable with SingleMachineFileSystemHelper {
         alps.append(alp)
         glps.append(glp)
         llps.append(llp)
+        val ccnt = cnt.incrementAndGet()
+        if (ccnt % 300 == 0) {
+          logger.info(s"training features generating ... $ccnt")
+        }
       }
     }
+    logger.info(s"training features generated, ${cnt.get()}")
     val aTrainMax: DMatrix = new DMatrix(alps.toIterator)
     val gTrainMax: DMatrix = new DMatrix(glps.toIterator)
     val lTrainMax: DMatrix = new DMatrix(llps.toIterator)
