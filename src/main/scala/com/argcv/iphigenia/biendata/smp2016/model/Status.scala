@@ -34,13 +34,29 @@ object Status extends Awakable with SingleMachineFileSystemHelper {
     logger.info("uag map: loaded...")
     m
   }
+  lazy val trainIndex = {
+    val idx = new StatusIndex
+    logger.info("building index .... ")
+    val cnt = new AtomicInteger()
+    trainStatusInfo.par.foreach { elem =>
+      val id: Long = elem._1
+      val tokens: List[String] = elem._2.flatMap(_.data)
+      idx.insert(tokens, id)
+      val ccnt = cnt.incrementAndGet()
+      if (ccnt % 5000 == 0) {
+        logger.info(s"index building .... $ccnt")
+      }
+    }
+    logger.info("index built...")
+    idx
+  }
 
   def loadStatusInfo(path: String) = {
     logger.info(s"[status] loading ... -- $path")
     val cnt = new AtomicInteger()
     val statusMap = getLines(path).toList.par.flatMap { s =>
       val ccnt = cnt.incrementAndGet()
-      if (ccnt % 2000 == 0) {
+      if (ccnt % 5000 == 0) {
         logger.info(s"[status] loading ... $ccnt  -- $path")
       }
       Status(s)
@@ -136,9 +152,7 @@ object Status extends Awakable with SingleMachineFileSystemHelper {
     uagMap.getOrElse(s, 0)
   }
 
-  def trainAddrFeats(id: Long) = addrFeats(id, trainStatusInfo)
-
-  def testAddrFeats(id: Long) = addrFeats(id, testStatusInfo)
+  def trainAddrFeats(id: Long): Array[Float] = addrFeats(id, trainStatusInfo)
 
   def addrFeats(id: Long, statusInfo: Map[Long, List[Status]]): Array[Float] = {
     val sz = 7 // 0 - 6
@@ -155,6 +169,115 @@ object Status extends Awakable with SingleMachineFileSystemHelper {
       case None =>
     }
     initArr.map(_.get().toFloat)
+  }
+
+  def testAddrFeats(id: Long) = addrFeats(id, testStatusInfo)
+
+  def queryIndex(id: Long, statusInfo: Map[Long, List[Status]] = trainStatusInfo): List[(Int, Double)] = {
+    statusInfo.get(id) match {
+      case Some(stl) =>
+        val tokens: List[String] = stl.flatMap(_.data)
+        val resp: List[(Int, Double)] = trainIndex.query(tokens).take(20)
+        resp
+      case None =>
+        List[(Int, Double)]()
+    }
+  }
+
+  def indexTest(id: Long) = {
+    val ids = queryIndexExplain(id).take(100).filter(_._3 != id)
+    val minfo = SocialData.trainLabels(id)
+    val av = minfo.a.get.v
+    val gv = minfo.g.get.v
+    val lv = minfo.l.get.v
+    val resp = ids.foldLeft(0.0, 0.0, 0.0, 0.0) { (curr, cid) =>
+      val factor = cid._2
+      val cinfo = SocialData.trainLabels(cid._3)
+      (curr._1 + factor * (cinfo.a match {
+        case Some(a) =>
+          if (a.v == av) 1 else 0
+        case None =>
+          0
+      }),
+        curr._2 + factor * (cinfo.g match {
+          case Some(g) =>
+            if (g.v == gv) 1 else 0
+          case None =>
+            0
+        }),
+        curr._3 + factor * (cinfo.l match {
+          case Some(l) =>
+            if (l.v == lv) 1 else 0
+          case None =>
+            0
+        }),
+        curr._4 + factor)
+    }
+    (resp,
+      (resp._1 / resp._4, resp._2 / resp._4, resp._2 / resp._4),
+      (resp._1 / resp._4 * 3, resp._2 / resp._4 * 2, resp._3 / resp._4 * 8),
+      resp._4)
+  }
+
+  def trainIndexFeats(id: Long): Array[Float] = {
+    indexFeats(id, trainStatusInfo)
+  }
+
+  def indexFeats(id: Long, statusInfo: Map[Long, List[Status]] = trainStatusInfo): Array[Float] = {
+    val ids: List[(Int, Double, Long)] = queryIndexExplain(id, statusInfo).take(100).filter(_._3 != id)
+    // 3 + 2 + 8
+    val initArr: Array[Float] = (0 until 13).map(_ => 0.0F).toArray
+    var factAll = 0.0F
+    ids.foreach { cid =>
+      val factor = cid._2.toFloat
+      factAll += factor
+      val cinfo = SocialData.trainLabels(cid._3)
+      cinfo.a match {
+        case Some(a) =>
+          val av = a.v
+          if (av >= 1 && av <= 3) {
+            initArr(av - 1) += factor
+          }
+        case None =>
+      }
+      cinfo.g match {
+        case Some(g) =>
+          val gv = g.v
+          if (gv == 1 || gv == 2) {
+            initArr(gv + 2) += factor
+          }
+        case None =>
+      }
+      cinfo.l match {
+        case Some(l) =>
+          val lv = l.v
+          if (lv >= 1 && lv <= 8) {
+            initArr(lv + 4) += factor
+          }
+        case None =>
+      }
+    }
+    if (factAll <= 0.0F) {
+      initArr
+    } else {
+      initArr.map(_ / factAll)
+    }
+  }
+
+  def queryIndexExplain(id: Long, statusInfo: Map[Long, List[Status]] = trainStatusInfo): List[(Int, Double, Long)] = {
+    statusInfo.get(id) match {
+      case Some(stl) =>
+        val tokens: List[String] = stl.flatMap(_.data)
+        val resp: List[(Int, Double, Long)] = trainIndex.query(tokens).take(20).
+          map(e => (e._1, e._2, trainIndex.get(e._1).getOrElse(-1L)))
+        resp
+      case None =>
+        List[(Int, Double, Long)]()
+    }
+  }
+
+  def testIndexFeats(id: Long): Array[Float] = {
+    indexFeats(id, testStatusInfo)
   }
 
 }

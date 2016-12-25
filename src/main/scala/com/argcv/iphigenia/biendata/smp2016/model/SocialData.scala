@@ -7,15 +7,6 @@ import com.argcv.valhalla.utils.Awakable
 import scala.io.Source
 
 object SocialData extends Awakable {
-  def getIdAndName(s: String): Option[(Long, String)] = {
-    val arrs = s.split("\\|\\|")
-    if (arrs.length >= 2) {
-      Some((arrs(0).toLong, arrs(1)))
-    } else {
-      None
-    }
-  }
-
   lazy val id2Name: Map[Long, String] = {
     val nameTrain = Source.fromFile(new File("data/smp2016/train/train_info.txt")).
       getLines().toList.flatMap(s => getIdAndName(s))
@@ -52,6 +43,15 @@ object SocialData extends Awakable {
       toMap
   }
 
+  def getIdAndName(s: String): Option[(Long, String)] = {
+    val arrs = s.split("\\|\\|")
+    if (arrs.length >= 2) {
+      Some((arrs(0).toLong, arrs(1)))
+    } else {
+      None
+    }
+  }
+
   def followingInfoGetter(path: String) = {
     // [a,b] b is a's follower
     val rel: List[(Long, Long)] = Source.fromFile(new File(path)).
@@ -72,13 +72,13 @@ object SocialData extends Awakable {
     (following, follower)
   }
 
-  /**
-   * 都是某人的粉丝
-   *
-   * @param id id
-   * @return
-   */
-  def revCands(id: Long) = cands(id, testFollowingInfo, trainFollowerInfo)
+  //  /**
+  //   * 都是某人的粉丝
+  //   *
+  //   * @param id id
+  //   * @return
+  //   */
+  //  def revCands(id: Long) = cands(id, testFollowingInfo, trainFollowerInfo)
 
   /**
    * 都被某人粉
