@@ -28,11 +28,16 @@ object BoostFromPrediction {
     val trainMat = new DMatrix(XGBoostConf.trainFilePath)
     val testMat = new DMatrix(XGBoostConf.testFilePath)
 
-    val params = new mutable.HashMap[String, Any]()
-    params += "eta" -> 1.0
-    params += "max_depth" -> 2
-    params += "silent" -> 1
-    params += "objective" -> "binary:logistic"
+    val params = Map[String, Any](
+      "eta" -> 1.0,
+      "max_depth" -> 2,
+      "silent" -> 1,
+      "objective" -> "binary:logistic"
+    )
+    //    params +=
+    //    params +=
+    //    params +=
+    //    params +=
 
     val watches = new mutable.HashMap[String, DMatrix]
     watches += "train" -> trainMat
@@ -40,7 +45,7 @@ object BoostFromPrediction {
 
     val round = 2
     // train a model
-    val booster = XGBoost.train(trainMat, params.toMap, round, watches.toMap)
+    val booster = XGBoost.train(trainMat, params, round, watches.toMap)
 
     val trainPred = booster.predict(trainMat, true)
     val testPred = booster.predict(testMat, true)
@@ -49,6 +54,6 @@ object BoostFromPrediction {
     testMat.setBaseMargin(testPred)
 
     System.out.println("result of running from initial prediction")
-    val booster2 = XGBoost.train(trainMat, params.toMap, 1, watches.toMap, null, null)
+    val booster2 = XGBoost.train(trainMat, params, 1, watches.toMap, null, null)
   }
 }

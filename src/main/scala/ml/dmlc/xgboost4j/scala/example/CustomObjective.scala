@@ -38,18 +38,20 @@ object CustomObjective {
   def main(args: Array[String]): Unit = {
     val trainMat = new DMatrix(XGBoostConf.trainFilePath)
     val testMat = new DMatrix(XGBoostConf.testFilePath)
-    val params = new mutable.HashMap[String, Any]()
-    params += "eta" -> 1.0
-    params += "max_depth" -> 2
-    params += "silent" -> 1
-    val watches = new mutable.HashMap[String, DMatrix]
-    watches += "train" -> trainMat
-    watches += "test" -> testMat
+    val params = Map[String, Any](
+      "eta" -> 1.0,
+      "max_depth" -> 2,
+      "silent" -> 1
+    )
+    val watches = Map[String, DMatrix](
+      "train" -> trainMat,
+      "test" -> testMat
+    )
 
     val round = 2
     // train a model
-    val booster = XGBoost.train(trainMat, params.toMap, round, watches.toMap)
-    XGBoost.train(trainMat, params.toMap, round, watches.toMap, new LogRegObj, new EvalError)
+    val booster = XGBoost.train(trainMat, params, round, watches)
+    XGBoost.train(trainMat, params, round, watches, new LogRegObj, new EvalError)
   }
 
   /**

@@ -1,13 +1,13 @@
 import java.io.{ BufferedWriter, File, FileWriter }
 
-import com.argcv.valhalla.exception.ExceptionHelper._
+import com.argcv.valhalla.exception.ExceptionHelper.SafeExec
 import de.bwaldvogel.liblinear._
 import org.slf4j.LoggerFactory
+import spire.implicits.cfor
 import spire.math._
 
 import scala.collection.mutable.{ ArrayBuffer, Map => MMap }
 import scala.io.Source
-import spire.implicits.cfor
 
 /**
  *
@@ -157,7 +157,7 @@ object Launcher extends App {
     }
   }
 
-  def trainModel() = {
+  def trainModel(): Model = {
     logger.info("start training...")
 
     val ybuff = ArrayBuffer[Double]()
@@ -223,10 +223,10 @@ object Launcher extends App {
     }
   }
 
-  def loadModel() = {
+  def loadModel(): Option[Model] = {
     val f = if (param.model.isDefined) Some(new File(param.model.get)) else None
     if (f.isDefined && f.get.exists()) {
-      (() => Linear.loadModel(new File(param.model.get))).safeExec
+      SafeExec(Linear.loadModel(new File(param.model.get)))
     } else {
       logger.error("model file not found")
       None
