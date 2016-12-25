@@ -173,9 +173,14 @@ object XGBoostTrain extends Awakable with SingleMachineFileSystemHelper {
   import ml.dmlc.xgboost4j.scala.{ Booster, DMatrix, XGBoost }
 
   implicit class NormalizeFeats(fts: Array[Float]) {
-    def normalize = {
-      val total: Float = fts.sum + 1
-      fts.map(_ / total)
+    def normalize: Array[Float] = {
+      val total: Float = fts.sum
+      if (total == 0) {
+        val score = 0.0.toFloat
+        fts.map(_ => score)
+      } else {
+        fts.map(_ / total)
+      }
     }
   }
 

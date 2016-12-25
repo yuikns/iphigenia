@@ -40,7 +40,7 @@ object Status extends Awakable with SingleMachineFileSystemHelper {
     val cnt = new AtomicInteger()
     val statusMap = getLines(path).toList.par.flatMap { s =>
       val ccnt = cnt.incrementAndGet()
-      if (ccnt % 100 == 0) {
+      if (ccnt % 2000 == 0) {
         logger.info(s"[status] loading ... $ccnt  -- $path")
       }
       Status(s)
