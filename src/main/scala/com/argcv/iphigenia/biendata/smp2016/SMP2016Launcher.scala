@@ -17,68 +17,68 @@ import scala.collection.mutable.{ ArrayBuffer, ListBuffer }
 object MLModels extends Awakable with SingleMachineFileSystemHelper {
 
   import com.argcv.iphigenia.biendata.smp2016.model.SocialData._
+  //
+  //  lazy val models: List[Model] = loadModels()
+  //  val c: Double = 10000.0
+  //  val eps: Double = 0.000001
+  //
+  //  def trainLL(): Unit = {
+  //    //liblinear
+  //    val features = ArrayBuffer[Array[Feature]]()
+  //    val ybuff: List[ArrayBuffer[Double]] = (0 until 13).toList.map(_ => new ArrayBuffer[Double]())
+  //    getLines("data/smp2016/train/train_labels.txt").toList.foreach { s =>
+  //      val arrs = s.split("\\|\\|")
+  //      if (arrs.length >= 4) {
+  //        val id = arrs(0).toLong
+  //        val ft: Array[Feature] = scoresToFeatures(trainScores(id))
+  //        features.append(ft)
+  //        val values = trainLabels(id).toScores
+  //        values.indices.foreach { i =>
+  //          ybuff(i).append(values(i))
+  //        }
+  //      }
+  //    }
+  //    val px = features.toArray
+  //    val pn = features.head.length
+  //    val pl = features.length
+  //    (0 until 13).map { i =>
+  //      val p = new Problem
+  //      p.x = px
+  //      p.y = ybuff(i).toArray
+  //      p.l = pl
+  //      p.n = pn
+  //      (p, i)
+  //    }.par.foreach {
+  //      case (p, i) =>
+  //        // -s 0
+  //        val solver: SolverType = SolverType.L2R_LR
+  //        // cost of constraints violation
+  //        val C: Double = this.c
+  //        // stopping criteria
+  //        val eps: Double = this.eps
+  //        val parameter = new Parameter(solver, C, eps)
+  //
+  //        logger.info(s"training model ... $i")
+  //        val model = Linear.train(p, parameter)
+  //        logger.info(s"model trained ... $i")
+  //        model.save(new File(s"data/smp2016/ll/model_$i"))
+  //    }
+  //  }
+  //
+  //  def loadModels(): List[Model] = {
+  //    (0 until 13).map { i =>
+  //      Linear.loadModel(new File(s"data/smp2016/ll/model_$i"))
+  //    }.toList
+  //  }
 
-  lazy val models: List[Model] = loadModels()
-  val c: Double = 10000.0
-  val eps: Double = 0.000001
-
-  def trainLL(): Unit = {
-    //liblinear
-    val features = ArrayBuffer[Array[Feature]]()
-    val ybuff: List[ArrayBuffer[Double]] = (0 until 13).toList.map(_ => new ArrayBuffer[Double]())
-    getLines("data/smp2016/train/train_labels.txt").toList.foreach { s =>
-      val arrs = s.split("\\|\\|")
-      if (arrs.length >= 4) {
-        val id = arrs(0).toLong
-        val ft: Array[Feature] = scoresToFeatures(trainScores(id))
-        features.append(ft)
-        val values = trainLabels(id).toScores
-        values.indices.foreach { i =>
-          ybuff(i).append(values(i))
-        }
-      }
-    }
-    val px = features.toArray
-    val pn = features.head.length
-    val pl = features.length
-    (0 until 13).map { i =>
-      val p = new Problem
-      p.x = px
-      p.y = ybuff(i).toArray
-      p.l = pl
-      p.n = pn
-      (p, i)
-    }.par.foreach {
-      case (p, i) =>
-        // -s 0
-        val solver: SolverType = SolverType.L2R_LR
-        // cost of constraints violation
-        val C: Double = this.c
-        // stopping criteria
-        val eps: Double = this.eps
-        val parameter = new Parameter(solver, C, eps)
-
-        logger.info(s"training model ... $i")
-        val model = Linear.train(p, parameter)
-        logger.info(s"model trained ... $i")
-        model.save(new File(s"data/smp2016/ll/model_$i"))
-    }
-  }
-
-  def loadModels(): List[Model] = {
-    (0 until 13).map { i =>
-      Linear.loadModel(new File(s"data/smp2016/ll/model_$i"))
-    }.toList
-  }
-
-  def eval(id: Long): Info = {
-    val scores = trainScores(id)
-    val ft: Array[Feature] = scoresToFeatures(scores)
-    Info.result(
-      id,
-      models.map(Linear.predict(_, ft))
-    )
-  }
+  //  def eval(id: Long): Info = {
+  //    val scores = trainScores(id)
+  //    val ft: Array[Feature] = scoresToFeatures(scores)
+  //    Info.result(
+  //      id,
+  //      models.map(Linear.predict(_, ft))
+  //    )
+  //  }
 
   def candsToScoresNew(
     id: Long,
@@ -93,7 +93,7 @@ object MLModels extends Awakable with SingleMachineFileSystemHelper {
     scores
   }
 
-  def trainScores(id: Long): List[Double] = {
+  def trainScores(id: Long): Array[Float] = {
     val c: Set[Long] = trainCands(id)
     socialInfo(id, c,
       testInfo = trainFollowerInfo,
@@ -112,21 +112,21 @@ object MLModels extends Awakable with SingleMachineFileSystemHelper {
       trainInfo = trainFollowingInfo)
   }
 
-  def scoresToFeatures(s: List[Double]): Array[Feature] =
-    s.zipWithIndex.map { e =>
-      new FeatureNode(e._2 + 1, e._1).asInstanceOf[Feature]
-    }.toArray
+  //  def scoresToFeatures(s: List[Double]): Array[Feature] =
+  //    s.zipWithIndex.map { e =>
+  //      new FeatureNode(e._2 + 1, e._1).asInstanceOf[Feature]
+  //    }.toArray
+  //
+  //  def predict(id: Long) = {
+  //    val scores = testScores(id)
+  //    val ft: Array[Feature] = scoresToFeatures(scores)
+  //    Info.result(
+  //      id,
+  //      models.map(Linear.predict(_, ft))
+  //    )
+  //  }
 
-  def predict(id: Long) = {
-    val scores = testScores(id)
-    val ft: Array[Feature] = scoresToFeatures(scores)
-    Info.result(
-      id,
-      models.map(Linear.predict(_, ft))
-    )
-  }
-
-  def testScores(id: Long): List[Double] = {
+  def testScores(id: Long): Array[Float] = {
     val c: Set[Long] = testCands(id)
     socialInfo(id, c,
       testInfo = testFollowerInfo,
@@ -158,15 +158,20 @@ object XGBoostTrain extends Awakable with SingleMachineFileSystemHelper {
       val arrs = s.split("\\|\\|")
       if (arrs.length >= 4) {
         val id = arrs(0).toLong
-        //val scoreSocial = MLModels.trainScores(id).map(_.toFloat).toArray
-        val scoreSocial = MLModels.trainScoresNew(id).normalize
+        val scoreSocial = MLModels.trainScores(id)
+        //val scoreSocial = MLModels.trainScoresNew(id)
         val scoreUag = Status.trainUagFeats(id).normalize
         val scoreAddr = Status.trainAddrFeats(id).normalize
-        val scoreName = Name.nameFeats(id).normalize
-        val scoreStatus = Name.trainStatusFeats(id).normalize
-        val scoreIndex = Status.trainIndexFeats(id).normalize
+        val scoreName = Name.nameFeats(id)
+        //val scoreStatus = Name.trainStatusFeats(id).normalize
+        val scoreIndex = Status.trainIndexFeats(id)
         //        val scoreIndex = Status.cachedTrainIndexFeats(id)
-        val scores = scoreSocial ++ scoreUag ++ scoreAddr ++ scoreName ++ scoreStatus ++ scoreIndex
+        val scores = scoreSocial ++
+          scoreUag ++
+          scoreAddr ++
+          scoreName ++
+          //scoreStatus ++
+          scoreIndex
         val values = trainLabels(id)
         val alp: LabeledPoint = LabeledPoint.fromDenseVector((values.a.get.v - 1).toFloat, scores)
         val glp: LabeledPoint = LabeledPoint.fromDenseVector((values.g.get.v - 1).toFloat, scores)
@@ -260,16 +265,38 @@ object XGBoostTrain extends Awakable with SingleMachineFileSystemHelper {
     val alps = ListBuffer[LabeledPoint]()
     val glps = ListBuffer[LabeledPoint]()
     val llps = ListBuffer[LabeledPoint]()
+
+    //    val scoreSocial = MLModels.trainScores(id)
+    //    //val scoreSocial = MLModels.trainScoresNew(id)
+    //    val scoreUag = Status.trainUagFeats(id).normalize
+    //    val scoreAddr = Status.trainAddrFeats(id).normalize
+    //    val scoreName = Name.nameFeats(id)
+    //    //val scoreStatus = Name.trainStatusFeats(id).normalize
+    //    val scoreIndex = Status.trainIndexFeats(id)
+    //    //        val scoreIndex = Status.cachedTrainIndexFeats(id)
+    //    val scores = scoreSocial ++
+    //      scoreUag ++
+    //      scoreAddr ++
+    //      scoreName ++
+    //      //scoreStatus ++
+    //      scoreIndex
+    //
+    //
     //val scores = MLModels.testScores(id).map(_.toFloat).toArray
-    //val scoreSocial = MLModels.testScores(id).map(_.toFloat).toArray
-    val scoreSocial = MLModels.testScoresNew(id).normalize
+    val scoreSocial = MLModels.testScores(id)
+    //    val scoreSocial = MLModels.testScoresNew(id).normalize
     val scoreUag = Status.testUagFeats(id).normalize
     val scoreAddr = Status.testAddrFeats(id).normalize
-    val scoreName = Name.nameFeats(id).normalize
-    val scoreStatus = Name.testStatusFeats(id).normalize
+    val scoreName = Name.nameFeats(id)
+    //val scoreStatus = Name.testStatusFeats(id).normalize
     val scoreIndex = Status.testIndexFeats(id).normalize
     //    val scoreIndex = Status.cachedTestIndexFeats(id)
-    val scores = scoreSocial ++ scoreUag ++ scoreAddr ++ scoreName ++ scoreStatus ++ scoreIndex
+    val scores = scoreSocial ++
+      scoreUag ++
+      scoreAddr ++
+      scoreName ++
+      //scoreStatus ++
+      scoreIndex
     val value: Float = 0.0.toFloat
     val alp: LabeledPoint = LabeledPoint.fromDenseVector(value, scores)
     val glp: LabeledPoint = LabeledPoint.fromDenseVector(value, scores)

@@ -61,6 +61,7 @@ object Name extends Awakable {
       map(e => (e._1, e._2.length)).
       filter(_._2 > 10).
       toList.sortWith(_._2 > _._2).
+      take(100).
       map(_._1).
       zipWithIndex.toMap
     logger.info("nfMap loaded...")

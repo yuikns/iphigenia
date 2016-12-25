@@ -123,10 +123,22 @@ object Status extends Awakable with SingleMachineFileSystemHelper {
   }
 
   def saveUAGs() = {
+    //    writeLines("data/smp2016/xg/uags.txt") { bw =>
+    //      trainStatusInfo.flatMap(_._2).map(_.uag).toList.distinct.zipWithIndex.foreach { i =>
+    //        bw.append(i._1).append("\t").append((i._2 + 1).toString).write("\n")
+    //      }
+    //    }
     writeLines("data/smp2016/xg/uags.txt") { bw =>
-      trainStatusInfo.flatMap(_._2).map(_.uag).toList.distinct.zipWithIndex.foreach { i =>
-        bw.append(i._1).append("\t").append((i._2 + 1).toString).write("\n")
-      }
+      trainStatusInfo.flatMap(_._2).map(_.uag).
+        toList.groupBy(identity).
+        map(e => e._1 -> e._2.length).toList.
+        filter(_._2 > 10).
+        sortWith(_._2 > _._2).
+        map(_._1).
+        take(100).
+        zipWithIndex.foreach { i =>
+          bw.append(i._1).append("\t").append((i._2 + 1).toString).write("\n")
+        }
     }
   }
 

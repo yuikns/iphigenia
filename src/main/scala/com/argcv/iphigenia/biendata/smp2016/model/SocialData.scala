@@ -108,7 +108,7 @@ object SocialData extends Awakable {
   def socialInfo(id: Long,
     c: Set[Long],
     testInfo: Map[Long, Set[Long]] = testFollowerInfo,
-    trainInfo: Map[Long, Set[Long]] = trainFollowerInfo): List[Double] = {
+    trainInfo: Map[Long, Set[Long]] = trainFollowerInfo): Array[Float] = {
     val scores = c.par.flatMap { cid =>
       trainLabels.get(cid) match {
         case Some(cInfo) =>
@@ -177,8 +177,8 @@ object SocialData extends Awakable {
         case None =>
           None
       }
-    }.toList
-    val scoreSum: List[Double] = scores.foldLeft(List[Double](
+    }.toArray
+    val scoreSum = scores.foldLeft(List[Double](
       0.0, 0.0, 0.0,
       0.0, 0.0,
       0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0
@@ -189,7 +189,7 @@ object SocialData extends Awakable {
         l(5) + c._6, l(6) + c._7, l(7) + c._8, l(8) + c._9,
         l(9) + c._10, l(10) + c._11, l(11) + c._12, l(12) + c._13
       )
-    }
+    }.map(_.toFloat).toArray
     scoreSum
   }
 
