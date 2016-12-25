@@ -161,8 +161,7 @@ object MLModels extends Awakable with SingleMachineFileSystemHelper {
 }
 
 object XGBoostTrain extends Awakable with SingleMachineFileSystemHelper {
-  lazy val (ab, gb, lb) = {
-    logger.info("training starting ...")
+  lazy val (aTrainMax: DMatrix, gTrainMax: DMatrix, lTrainMax: DMatrix) = {
     //liblinear
     val alps = ListBuffer[LabeledPoint]()
     val glps = ListBuffer[LabeledPoint]()
@@ -195,9 +194,26 @@ object XGBoostTrain extends Awakable with SingleMachineFileSystemHelper {
       }
     }
     logger.info(s"training features generated, ${cnt.get()}")
-    val aTrainMax: DMatrix = new DMatrix(alps.toIterator)
-    val gTrainMax: DMatrix = new DMatrix(glps.toIterator)
-    val lTrainMax: DMatrix = new DMatrix(llps.toIterator)
+    val atx: DMatrix = new DMatrix(alps.toIterator)
+    val gtx: DMatrix = new DMatrix(glps.toIterator)
+    val ltx: DMatrix = new DMatrix(llps.toIterator)
+    (atx, gtx, ltx)
+  }
+
+  def crossValidation() = {
+    List(
+      doCrossValidation(aTrainMax, 3, "age"),
+      doCrossValidation(gTrainMax, 2, "gender"),
+      doCrossValidation(lTrainMax, 8, "loc")
+    ).foreach { v =>
+        logger.info(s"crossValidation: [${v._2}] :\n\t${
+          v._1.mkString("\n\t")
+        }\n")
+      }
+  }
+
+  lazy val (ab, gb, lb) = {
+    logger.info("training starting ...")
     val resp = (
       doTrain(aTrainMax, 3, "data/smp2016/xg/model_a", "age", nthread = CONF_N_THREAD),
       doTrain(gTrainMax, 2, "data/smp2016/xg/model_g", "gender", nthread = CONF_N_THREAD),
@@ -224,6 +240,33 @@ object XGBoostTrain extends Awakable with SingleMachineFileSystemHelper {
     val booster: Booster = XGBoost.train(mtx, params, round, watches)
     booster.saveModel(path)
     booster
+  }
+
+  def doCrossValidation(mtx: DMatrix,
+    nClass: Int,
+    label: String = "#",
+    round: Int = 256,
+    nfold: Int = 5,
+    eta: Double = 0.03,
+    maxDepth: Int = 20,
+    nthread: Int = 8): (Array[String], String) = {
+    val params = Map[String, Any](
+      "objective" -> "multi:softmax",
+      //      "objective" -> "multi:softprob",
+      "eta" -> eta,
+      "max_depth" -> maxDepth,
+      "silent" -> 1,
+      "nthread" -> nthread,
+      "num_class" -> nClass
+    )
+    val evalHist: Array[String] = XGBoost.crossValidation(
+      mtx,
+      params,
+      round,
+      nfold
+    )
+    logger.info(s"eval Hists: $label \n${evalHist.mkString("\n")}\n")
+    (evalHist, label)
   }
 
   def predict(id: Long): (Int, Int, Int) = {
