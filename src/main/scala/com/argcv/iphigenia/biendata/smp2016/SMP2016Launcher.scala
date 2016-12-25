@@ -1,20 +1,18 @@
 package com.argcv.iphigenia.biendata.smp2016
 
-import java.io.{ File, PrintWriter }
+import java.io.File
 import java.util.concurrent.atomic.AtomicInteger
 
 import com.argcv.iphigenia.biendata.smp2016.model.SocialData._
 import com.argcv.iphigenia.biendata.smp2016.model._
-import com.argcv.valhalla.utils.Awakable
 import com.argcv.valhalla.console.ColorForConsole._
 import com.argcv.valhalla.fs.SingleMachineFileSystemHelper
-
-import scala.collection.parallel.immutable.{ ParMap, ParSet }
-import scala.io.Source
+import com.argcv.valhalla.utils.Awakable
 import de.bwaldvogel.liblinear._
-import ml.dmlc.xgboost4j.scala.DMatrix
+import ml.dmlc.xgboost4j.LabeledPoint
+import ml.dmlc.xgboost4j.scala.{Booster, DMatrix, XGBoost}
 
-import scala.collection.mutable.{ ArrayBuffer, ListBuffer }
+import scala.collection.mutable.{ArrayBuffer, ListBuffer}
 
 object MLModels extends Awakable with SingleMachineFileSystemHelper {
 
@@ -163,27 +161,6 @@ object MLModels extends Awakable with SingleMachineFileSystemHelper {
 }
 
 object XGBoostTrain extends Awakable with SingleMachineFileSystemHelper {
-  var CONF_N_THREAD = 64
-
-  import java.io.File
-  import java.util.concurrent.atomic.AtomicInteger
-
-  import com.argcv.valhalla.utils.Awakable
-  import ml.dmlc.xgboost4j.LabeledPoint
-  import ml.dmlc.xgboost4j.scala.{ Booster, DMatrix, XGBoost }
-
-  implicit class NormalizeFeats(fts: Array[Float]) {
-    def normalize: Array[Float] = {
-      val total: Float = fts.sum
-      if (total == 0) {
-        val score = 0.0.toFloat
-        fts.map(_ => score)
-      } else {
-        fts.map(_ / total)
-      }
-    }
-  }
-
   lazy val (ab, gb, lb) = {
     logger.info("training starting ...")
     //liblinear
@@ -228,6 +205,7 @@ object XGBoostTrain extends Awakable with SingleMachineFileSystemHelper {
     logger.info("train finished")
     resp
   }
+  var CONF_N_THREAD = 64
 
   def doTrain(mtx: DMatrix, nClass: Int, path: String, label: String = "#", round: Int = 256, eta: Double = 0.3, maxDepth: Int = 10, nthread: Int = 8): Booster = {
     val params = Map[String, Any](
@@ -241,32 +219,12 @@ object XGBoostTrain extends Awakable with SingleMachineFileSystemHelper {
     )
     val watches = Map[String, DMatrix](
       s"train-$label" -> mtx //trainMax,
-    //      "test" -> testMax
+      //      "test" -> testMax
     )
     val booster: Booster = XGBoost.train(mtx, params, round, watches)
     booster.saveModel(path)
     booster
   }
-
-  //  def predict(ids: Array[Array[Float]]): (Array[Int], Array[Int], Array[Int]) = {
-  //    val alps = ListBuffer[LabeledPoint]()
-  //    val glps = ListBuffer[LabeledPoint]()
-  //    val llps = ListBuffer[LabeledPoint]()
-  //    ids.foreach { scores =>
-  //      //val scores = MLModels.trainScores(id).map(_.toFloat).toArray
-  //      val value: Float = 0.0.toFloat
-  //      val alp: LabeledPoint = LabeledPoint.fromDenseVector(value, scores)
-  //      val glp: LabeledPoint = LabeledPoint.fromDenseVector(value, scores)
-  //      val llp: LabeledPoint = LabeledPoint.fromDenseVector(value, scores)
-  //      alps.append(alp)
-  //      glps.append(glp)
-  //      llps.append(llp)
-  //    }
-  //    val ar: Array[Int] = predict(new DMatrix(alps.toIterator), ab)
-  //    val gr: Array[Int] = predict(new DMatrix(glps.toIterator), gb)
-  //    val lr: Array[Int] = predict(new DMatrix(llps.toIterator), lb)
-  //    (ar, gr, lr)
-  //  }
 
   def predict(id: Long): (Int, Int, Int) = {
     val alps = ListBuffer[LabeledPoint]()
@@ -294,21 +252,93 @@ object XGBoostTrain extends Awakable with SingleMachineFileSystemHelper {
     (ar, gr, lr)
   }
 
+  //  def predict(ids: Array[Array[Float]]): (Array[Int], Array[Int], Array[Int]) = {
+  //    val alps = ListBuffer[LabeledPoint]()
+  //    val glps = ListBuffer[LabeledPoint]()
+  //    val llps = ListBuffer[LabeledPoint]()
+  //    ids.foreach { scores =>
+  //      //val scores = MLModels.trainScores(id).map(_.toFloat).toArray
+  //      val value: Float = 0.0.toFloat
+  //      val alp: LabeledPoint = LabeledPoint.fromDenseVector(value, scores)
+  //      val glp: LabeledPoint = LabeledPoint.fromDenseVector(value, scores)
+  //      val llp: LabeledPoint = LabeledPoint.fromDenseVector(value, scores)
+  //      alps.append(alp)
+  //      glps.append(glp)
+  //      llps.append(llp)
+  //    }
+  //    val ar: Array[Int] = predict(new DMatrix(alps.toIterator), ab)
+  //    val gr: Array[Int] = predict(new DMatrix(glps.toIterator), gb)
+  //    val lr: Array[Int] = predict(new DMatrix(llps.toIterator), lb)
+  //    (ar, gr, lr)
+  //  }
+
   def predict(mtx: DMatrix, b: Booster): Array[Int] = {
     b.predict(mtx).map(_.head.toInt)
+  }
+
+  implicit class NormalizeFeats(fts: Array[Float]) {
+    def normalize: Array[Float] = {
+      val total: Float = fts.sum
+      if (total == 0) {
+        val score = 0.0.toFloat
+        fts.map(_ => score)
+      } else {
+        fts.map(_ / total)
+      }
+    }
   }
 
 }
 
 /**
- *
- * @author Yu Jing <yu@argcv.com> on 12/21/16
- */
+  *
+  * @author Yu Jing <yu@argcv.com> on 12/21/16
+  */
 object SMP2016Launcher extends Awakable with SingleMachineFileSystemHelper {
+
   import com.argcv.iphigenia.biendata.smp2016.model.SocialData._
 
   val timeIn = System.currentTimeMillis()
   val tasks: List[Long] = getLines("data/smp2016/test/test_nolabels.txt").toList.map(_.toLong)
+  val cnt = new AtomicInteger()
+  val predMap: Map[Long, Info] = tasks.map { id =>
+    //var rel = MLModels.predict(id) //Info(id) //SocialData.predict(id, c)
+    val pred: (Int, Int, Int) = XGBoostTrain.predict(id)
+    val rel = Info(
+      id,
+      Some(Age(pred._1 + 1)),
+      Some(Gender(pred._2 + 1)),
+      Some(Loc(pred._3 + 1))
+    )
+    //    id2Name.get(id) match {
+    //      case Some(name) =>
+    //        val m = List[String]("斌", "牛仔", "峰", "强")
+    //        val f = List[String]("喵", "珊", "雪", "筱", "兰", "柠", "娜", "婷", "咩", "妹", "梦")
+    //        if (m.exists(name.contains(_))) {
+    //          rel = rel.copy(
+    //            g = Some(Gender(1))
+    //          )
+    //        } else if (f.exists(name.contains(_))) {
+    //          rel = rel.copy(
+    //            g = Some(Gender(2))
+    //          )
+    //        }
+    //      case None =>
+    //    }
+    val ccnt = cnt.incrementAndGet()
+    if (ccnt % 100 == 0) {
+      println(s"$ccnt ...")
+    }
+    id -> rel
+  }.toMap
+
+  logger.info(s"size of id 2 name: ${id2Name.size}")
+
+  def main(args: Array[String]): Unit = {
+    saveAll(args)
+  }
+
+  logger.info("loading ...")
 
   def saveAll(args: Array[String] = Array[String]()): Unit = {
     logger.info(s"start... args ${args.mkString(",")}")
@@ -324,43 +354,5 @@ object SMP2016Launcher extends Awakable with SingleMachineFileSystemHelper {
     }
     logger.info(s"end ... time cost $getTimeCostStr ms")
   }
-
-  def main(args: Array[String]): Unit = {
-    saveAll(args)
-  }
-
-  logger.info(s"size of id 2 name: ${id2Name.size}")
-  val cnt = new AtomicInteger()
-  logger.info("loading ...")
-  val predMap: Map[Long, Info] = tasks.map { id =>
-    //var rel = MLModels.predict(id) //Info(id) //SocialData.predict(id, c)
-    val pred: (Int, Int, Int) = XGBoostTrain.predict(id)
-    var rel = Info(
-      id,
-      Some(Age(pred._1 + 1)),
-      Some(Gender(pred._2 + 1)),
-      Some(Loc(pred._3 + 1))
-    )
-    id2Name.get(id) match {
-      case Some(name) =>
-        val m = List[String]("斌", "牛仔", "峰", "强")
-        val f = List[String]("喵", "珊", "雪", "筱", "兰", "柠", "娜", "婷", "咩", "妹", "梦")
-        if (m.exists(name.contains(_))) {
-          rel = rel.copy(
-            g = Some(Gender(1))
-          )
-        } else if (f.exists(name.contains(_))) {
-          rel = rel.copy(
-            g = Some(Gender(2))
-          )
-        }
-      case None =>
-    }
-    val ccnt = cnt.incrementAndGet()
-    if (ccnt % 100 == 0) {
-      println(s"$ccnt ...")
-    }
-    id -> rel
-  }.toMap
 
 }
