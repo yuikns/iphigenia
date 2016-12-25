@@ -10,9 +10,9 @@ import com.argcv.valhalla.fs.SingleMachineFileSystemHelper
 import com.argcv.valhalla.utils.Awakable
 import de.bwaldvogel.liblinear._
 import ml.dmlc.xgboost4j.LabeledPoint
-import ml.dmlc.xgboost4j.scala.{Booster, DMatrix, XGBoost}
+import ml.dmlc.xgboost4j.scala.{ Booster, DMatrix, XGBoost }
 
-import scala.collection.mutable.{ArrayBuffer, ListBuffer}
+import scala.collection.mutable.{ ArrayBuffer, ListBuffer }
 
 object MLModels extends Awakable with SingleMachineFileSystemHelper {
 
@@ -207,7 +207,7 @@ object XGBoostTrain extends Awakable with SingleMachineFileSystemHelper {
   }
   var CONF_N_THREAD = 64
 
-  def doTrain(mtx: DMatrix, nClass: Int, path: String, label: String = "#", round: Int = 256, eta: Double = 0.3, maxDepth: Int = 10, nthread: Int = 8): Booster = {
+  def doTrain(mtx: DMatrix, nClass: Int, path: String, label: String = "#", round: Int = 256, eta: Double = 0.03, maxDepth: Int = 20, nthread: Int = 8): Booster = {
     val params = Map[String, Any](
       "objective" -> "multi:softmax",
       //      "objective" -> "multi:softprob",
@@ -219,7 +219,7 @@ object XGBoostTrain extends Awakable with SingleMachineFileSystemHelper {
     )
     val watches = Map[String, DMatrix](
       s"train-$label" -> mtx //trainMax,
-      //      "test" -> testMax
+    //      "test" -> testMax
     )
     val booster: Booster = XGBoost.train(mtx, params, round, watches)
     booster.saveModel(path)
@@ -291,9 +291,9 @@ object XGBoostTrain extends Awakable with SingleMachineFileSystemHelper {
 }
 
 /**
-  *
-  * @author Yu Jing <yu@argcv.com> on 12/21/16
-  */
+ *
+ * @author Yu Jing <yu@argcv.com> on 12/21/16
+ */
 object SMP2016Launcher extends Awakable with SingleMachineFileSystemHelper {
 
   import com.argcv.iphigenia.biendata.smp2016.model.SocialData._

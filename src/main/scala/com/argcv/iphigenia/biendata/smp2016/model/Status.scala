@@ -226,6 +226,16 @@ object Status extends Awakable with SingleMachineFileSystemHelper {
   }
 
   def indexFeats(id: Long, statusInfo: Map[Long, List[Status]] = trainStatusInfo): Array[Float] = {
+    val ids: List[(Int, Double)] = queryIndex(id, statusInfo).take(20)
+    // 3 + 2 + 8
+    val initArr: Array[Float] = (0 until trainIndex.size()).map(_ => 0.0F).toArray
+    ids.foreach { e =>
+      initArr(e._1) += e._2.toFloat
+    }
+    initArr
+  }
+
+  def indexFeatsWithPP(id: Long, statusInfo: Map[Long, List[Status]] = trainStatusInfo): Array[Float] = {
     val ids: List[(Int, Double, Long)] = queryIndexExplain(id, statusInfo).take(100).filter(_._3 != id)
     // 3 + 2 + 8
     val initArr: Array[Float] = (0 until 13).map(_ => 0.0F).toArray
