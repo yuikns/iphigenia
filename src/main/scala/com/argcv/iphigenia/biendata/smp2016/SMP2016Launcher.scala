@@ -174,7 +174,7 @@ object XGBoostTrain extends Awakable with SingleMachineFileSystemHelper {
 
   implicit class NormalizeFeats(fts: Array[Float]) {
     def normalize = {
-      val total: Float = fts.sum
+      val total: Float = fts.sum + 1
       fts.map(_ / total)
     }
   }
