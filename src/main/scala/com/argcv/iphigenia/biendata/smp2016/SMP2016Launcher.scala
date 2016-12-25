@@ -201,8 +201,8 @@ object XGBoostTrain extends Awakable with SingleMachineFileSystemHelper {
         val scoreAddr = Status.trainAddrFeats(id).normalize
         val scoreName = Name.nameFeats(id).normalize
         val scoreStatus = Name.trainStatusFeats(id).normalize
-        //        val scoreIndex = Status.trainIndexFeats(id)
-        val scoreIndex = Status.cachedTrainIndexFeats(id)
+        val scoreIndex = Status.trainIndexFeats(id)
+        //        val scoreIndex = Status.cachedTrainIndexFeats(id)
         val scores = scoreSocial ++ scoreUag ++ scoreAddr ++ scoreName ++ scoreStatus ++ scoreIndex
         val values = trainLabels(id)
         val alp: LabeledPoint = LabeledPoint.fromDenseVector((values.a.get.v - 1).toFloat, scores)
@@ -278,8 +278,8 @@ object XGBoostTrain extends Awakable with SingleMachineFileSystemHelper {
     val scoreAddr = Status.testAddrFeats(id).normalize
     val scoreName = Name.nameFeats(id).normalize
     val scoreStatus = Name.testStatusFeats(id).normalize
-    //    val scoreIndex = Status.testIndexFeats(id)
-    val scoreIndex = Status.cachedTestIndexFeats(id)
+    val scoreIndex = Status.testIndexFeats(id)
+    //    val scoreIndex = Status.cachedTestIndexFeats(id)
     val scores = scoreSocial ++ scoreUag ++ scoreAddr ++ scoreName ++ scoreStatus ++ scoreIndex
     val value: Float = 0.0.toFloat
     val alp: LabeledPoint = LabeledPoint.fromDenseVector(value, scores)
