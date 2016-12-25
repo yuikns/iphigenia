@@ -88,7 +88,7 @@ object MLModels extends Awakable with SingleMachineFileSystemHelper {
     val scores: Array[Float] = (0 until SocialData.trainId2Off.size).map(_ => 0.0F).toArray
     c.par.foreach { cid =>
       val simScore = SocialData.sim(id, cid, testInfo, trainInfo)
-      scores(SocialData.trainId2Off(cid)) += simScore
+      scores(SocialData.trainId2Off(cid)) += simScore.toFloat
     }
     scores
   }
