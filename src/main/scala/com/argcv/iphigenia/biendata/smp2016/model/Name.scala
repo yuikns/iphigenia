@@ -84,4 +84,42 @@ object Name extends Awakable {
     }
     initArr.map(_.get().toFloat)
   }
+
+  lazy val stfMap: Map[String, Int] = {
+    logger.info("loading stfMap")
+    val m = Status.trainStatusInfo.values.flatten.
+      flatMap(e => e.data).
+      groupBy(identity).
+      map(e => (e._1, e._2.size)).
+      filter(_._2 > 10).
+      toList.sortWith(_._2 > _._2).
+      map(_._1).
+      zipWithIndex.toMap
+    logger.info("stfMap loaded...")
+    m
+  }
+
+  def statusFeats(id: Long, statusInfo: Map[Long, List[Status]]): Array[Float] = {
+    val sz = stfMap.size
+    val initArr = (0 until sz).map(_ => new AtomicInteger()).toArray
+    statusInfo.get(id) match {
+      case Some(tokens) =>
+        tokens.foreach { st =>
+          st.data.foreach { e =>
+            stfMap.get(e) match {
+              case Some(score) =>
+                initArr(score).incrementAndGet()
+              case None =>
+            }
+          }
+        }
+      case None =>
+    }
+    initArr.map(_.get().toFloat)
+  }
+
+  def trainStatusFeats(id: Long) = statusFeats(id, Status.trainStatusInfo)
+
+  def testStatusFeats(id: Long) = statusFeats(id, Status.testStatusInfo)
+
 }

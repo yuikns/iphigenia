@@ -193,7 +193,8 @@ object XGBoostTrain extends Awakable with SingleMachineFileSystemHelper {
         val scoreUag = Status.trainUagFeats(id).normalize
         val scoreAddr = Status.trainAddrFeats(id).normalize
         val scoreName = Name.nameFeats(id).normalize
-        val scores = scoreSocial ++ scoreUag ++ scoreAddr ++ scoreName
+        val scoreStatus = Name.trainStatusFeats(id).normalize
+        val scores = scoreSocial ++ scoreUag ++ scoreAddr ++ scoreName ++ scoreStatus
         val values = trainLabels(id)
         val alp: LabeledPoint = LabeledPoint.fromDenseVector((values.a.get.v - 1).toFloat, scores)
         val glp: LabeledPoint = LabeledPoint.fromDenseVector((values.g.get.v - 1).toFloat, scores)
@@ -214,7 +215,7 @@ object XGBoostTrain extends Awakable with SingleMachineFileSystemHelper {
     resp
   }
 
-  def doTrain(mtx: DMatrix, nClass: Int, path: String, label: String = "#", round: Int = 256, eta: Double = 0.3, maxDepth: Int = 10, nthread: Int = 8): Booster = {
+  def doTrain(mtx: DMatrix, nClass: Int, path: String, label: String = "#", round: Int = 256, eta: Double = 0.03, maxDepth: Int = 10, nthread: Int = 8): Booster = {
     val params = Map[String, Any](
       "objective" -> "multi:softmax",
       //      "objective" -> "multi:softprob",
@@ -262,7 +263,8 @@ object XGBoostTrain extends Awakable with SingleMachineFileSystemHelper {
     val scoreUag = Status.testUagFeats(id).normalize
     val scoreAddr = Status.testAddrFeats(id).normalize
     val scoreName = Name.nameFeats(id).normalize
-    val scores = scoreSocial ++ scoreUag ++ scoreAddr ++ scoreName
+    val scoreStatus = Name.testStatusFeats(id).normalize
+    val scores = scoreSocial ++ scoreUag ++ scoreAddr ++ scoreName ++ scoreStatus
     val value: Float = 0.0.toFloat
     val alp: LabeledPoint = LabeledPoint.fromDenseVector(value, scores)
     val glp: LabeledPoint = LabeledPoint.fromDenseVector(value, scores)
