@@ -67,7 +67,7 @@ object MLModels extends Awakable with SingleMachineFileSystemHelper {
 
   def loadModels(): List[Model] = {
     (0 until 13).map { i =>
-      Linear.loadModel(new File(s"/Users/yu/Workspace/comp/iphigenia/data/smp2016/ll/model_$i"))
+      Linear.loadModel(new File(s"data/smp2016/ll/model_$i"))
     }.toList
   }
 
@@ -80,11 +80,29 @@ object MLModels extends Awakable with SingleMachineFileSystemHelper {
     )
   }
 
+  def candsToScoresNew(
+    id: Long,
+    c: Set[Long],
+    testInfo: Map[Long, Set[Long]] = testFollowerInfo,
+    trainInfo: Map[Long, Set[Long]] = trainFollowerInfo): Array[Float] = {
+    val scores: Array[Float] = (0 until SocialData.trainId2Off.size).map(_ => 0.0F).toArray
+    c.par.foreach { cid =>
+      val simScore = SocialData.sim(id, cid, testInfo, trainInfo)
+      scores(SocialData.trainId2Off(cid)) += simScore
+    }
+    scores
+  }
+
   def trainScores(id: Long): List[Double] = {
     val c: Set[Long] = trainCands(id)
     socialInfo(id, c,
       testInfo = trainFollowerInfo,
       trainInfo = trainFollowerInfo)
+  }
+
+  def trainScoresNew(id: Long): Array[Float] = {
+    val c: Set[Long] = trainCands(id)
+    candsToScoresNew(id, c, trainFollowerInfo, trainFollowerInfo)
   }
 
   def trainCands(id: Long): Set[Long] = {
@@ -115,49 +133,17 @@ object MLModels extends Awakable with SingleMachineFileSystemHelper {
       trainInfo = trainFollowerInfo)
   }
 
+  def testScoresNew(id: Long) = {
+    val c: Set[Long] = testCands(id)
+    candsToScoresNew(id, c, testFollowerInfo, trainFollowerInfo)
+  }
+
   def testCands(id: Long): Set[Long] = {
     cands(
       id,
       testInfo = testFollowerInfo,
       trainInfo = trainFollowingInfo)
   }
-
-  //  def saveSVMFile(): Unit = {
-  //    //liblinear
-  //    val features = ArrayBuffer[Array[Feature]]()
-  //    //val ybuff: List[ArrayBuffer[Double]] = (0 until 13).toList.map(_ => new ArrayBuffer[Double]())
-  //    val valueBuff = ListBuffer[(Int,Int,Int)]()
-  //    getLines("data/smp2016/train/train_labels.txt").toList.foreach { s =>
-  //      val arrs = s.split("\\|\\|")
-  //      if (arrs.length >= 4) {
-  //        val id = arrs(0).toLong
-  //        val ft: Array[Feature] = scoresToFeatures(trainScores(id))
-  //        features.append(ft)
-  //        val values = trainLabels(id)
-  //        valueBuff.append(
-  //          (values.a.get.v - 1,
-  //          values.g.get.v - 1,
-  //          values.l.get.v - 1)
-  //        )
-  //      }
-  //    }
-  //    val px = features.toArray
-  //    val pn = features.head.length
-  //    val pl = features.length
-  //    writeLines(s"data/smp2016/xg/svm_age.train") { pw =>
-  //      px.zipWithIndex.foreach{
-  //        case (x, idx) =>
-  //          pw.append(
-  //            valueBuff(idx).toString
-  //          ).append(" ")
-  //          val cpx: Array[Feature] = px(idx)
-  //          cpx.foreach{ cpf =>
-  //            pw.append(s"${cpf.getIndex}:${cpf.getValue} ")
-  //          }
-  //          pw.write("\n")
-  //      }
-  //    }
-  //  }
 }
 
 object XGBoostTrain extends Awakable with SingleMachineFileSystemHelper {
@@ -172,12 +158,13 @@ object XGBoostTrain extends Awakable with SingleMachineFileSystemHelper {
       val arrs = s.split("\\|\\|")
       if (arrs.length >= 4) {
         val id = arrs(0).toLong
-        val scoreSocial = MLModels.trainScores(id).map(_.toFloat).toArray
+        //val scoreSocial = MLModels.trainScores(id).map(_.toFloat).toArray
+        val scoreSocial = MLModels.trainScoresNew(id).normalize
         val scoreUag = Status.trainUagFeats(id).normalize
         val scoreAddr = Status.trainAddrFeats(id).normalize
         val scoreName = Name.nameFeats(id).normalize
         val scoreStatus = Name.trainStatusFeats(id).normalize
-        val scoreIndex = Status.trainIndexFeats(id)
+        val scoreIndex = Status.trainIndexFeats(id).normalize
         //        val scoreIndex = Status.cachedTrainIndexFeats(id)
         val scores = scoreSocial ++ scoreUag ++ scoreAddr ++ scoreName ++ scoreStatus ++ scoreIndex
         val values = trainLabels(id)
@@ -274,12 +261,13 @@ object XGBoostTrain extends Awakable with SingleMachineFileSystemHelper {
     val glps = ListBuffer[LabeledPoint]()
     val llps = ListBuffer[LabeledPoint]()
     //val scores = MLModels.testScores(id).map(_.toFloat).toArray
-    val scoreSocial = MLModels.testScores(id).map(_.toFloat).toArray
+    //val scoreSocial = MLModels.testScores(id).map(_.toFloat).toArray
+    val scoreSocial = MLModels.testScoresNew(id).normalize
     val scoreUag = Status.testUagFeats(id).normalize
     val scoreAddr = Status.testAddrFeats(id).normalize
     val scoreName = Name.nameFeats(id).normalize
     val scoreStatus = Name.testStatusFeats(id).normalize
-    val scoreIndex = Status.testIndexFeats(id)
+    val scoreIndex = Status.testIndexFeats(id).normalize
     //    val scoreIndex = Status.cachedTestIndexFeats(id)
     val scores = scoreSocial ++ scoreUag ++ scoreAddr ++ scoreName ++ scoreStatus ++ scoreIndex
     val value: Float = 0.0.toFloat

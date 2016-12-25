@@ -43,6 +43,9 @@ object SocialData extends Awakable {
       toMap
   }
 
+  lazy val trainId2Off: Map[Long, Int] = trainLabels.
+    keys.zipWithIndex.map(e => e._1 -> e._2).toMap
+
   def getIdAndName(s: String): Option[(Long, String)] = {
     val arrs = s.split("\\|\\|")
     if (arrs.length >= 2) {
@@ -94,7 +97,7 @@ object SocialData extends Awakable {
     testInfo.get(id) match {
       case Some(tr) =>
         tr.flatMap(sid => trainInfo.get(sid) match {
-          case Some(s) => s
+          case Some(s) => s.filterNot(l => l == id)
           case None => Set[Long]()
         })
       case None =>
