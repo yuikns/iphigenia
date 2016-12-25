@@ -6,6 +6,8 @@ import com.argcv.valhalla.fs.SingleMachineFileSystemHelper
 import com.argcv.valhalla.utils.Awakable
 import com.argcv.valhalla.string.StringHelper._
 
+import scala.collection.parallel.immutable.ParMap
+
 /**
  *
  * @author Yu Jing <yu@argcv.com> on 12/24/16
@@ -278,6 +280,45 @@ object Status extends Awakable with SingleMachineFileSystemHelper {
 
   def testIndexFeats(id: Long): Array[Float] = {
     indexFeats(id, testStatusInfo)
+  }
+
+  lazy val cachedTrainIndexFeats: ParMap[Long, Array[Float]] = {
+    val cnt = new AtomicInteger()
+    logger.info("generating ... cachedTrainIndexFeats")
+    val cache = getLines("data/smp2016/train/train_labels.txt").toList.par.flatMap { s =>
+      val arrs = s.split("\\|\\|")
+      val resp = if (arrs.length >= 4) {
+        val id = arrs(0).toLong
+        val scoreIndex = Status.trainIndexFeats(id)
+        Some(id -> scoreIndex)
+      } else {
+        None
+      }
+      val ccnt = cnt.incrementAndGet()
+      if (ccnt % 300 == 0) {
+        logger.info(s"cache for train index feats $ccnt")
+      }
+      resp
+    }.toMap
+    logger.info("cache for train index feats is generated ...")
+    cache
+  }
+
+  lazy val cachedTestIndexFeats: ParMap[Long, Array[Float]] = {
+    val cnt = new AtomicInteger()
+    logger.info("generating ... cachedTestIndexFeats")
+    val cache = getLines("data/smp2016/test/test_nolabels.txt").toList.par.flatMap { s =>
+      val id = s.toLong
+      val scoreIndex = Status.testIndexFeats(id)
+      val resp = Some(id -> scoreIndex)
+      val ccnt = cnt.incrementAndGet()
+      if (ccnt % 300 == 0) {
+        logger.info(s"cache for test index feats $ccnt")
+      }
+      resp
+    }.toMap
+    logger.info("cache for test index feats is generated ...")
+    cache
   }
 
 }
