@@ -6,7 +6,7 @@ object CompileSettings extends AutoPlugin {
 
   override def projectSettings = Seq(
     scalacOptions ++= Seq(
-      "-optimise",
+      "-optimize",
       "-deprecation", // Emit warning and location for usages of deprecated APIs.
       "-feature", // Emit warning and location for usages of features that should be imported explicitly.
       "-unchecked", // Enable additional warnings where generated code depends on assumptions.
@@ -18,7 +18,8 @@ object CompileSettings extends AutoPlugin {
       "-Ywarn-nullary-override", // Warn when non-nullary overrides nullary, e.g. def foo() over def foo.
       "-Ywarn-numeric-widen", // Warn when numerics are widened.
       "-Yinline-warnings", //
-      "-language:postfixOps" // See the Scala docs for value scala.language.postfixOps for a discussion
+      "-language:postfixOps", // See the Scala docs for value scala.language.postfixOps for a discussion
+      "-Ybackend:GenBCode"
     //,"-target:jvm-1.8" // force use jvm 1.8
     ),
     //javacOptions in compile ++= Seq("-target", "1.8", "-source", "1.8"), // force use jvm 1.8
