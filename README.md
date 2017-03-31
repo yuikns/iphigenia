@@ -1,4 +1,4 @@
-# CSE8803
+# Iphigenia
 
 Just a tiny seed of develop hadoop + spark.
 
