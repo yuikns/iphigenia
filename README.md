@@ -5,12 +5,12 @@ Just a tiny seed of develop hadoop + spark.
 ## Usage
 
 ```bash
-git clone --recurse-submodules git@github.com:yuikns/cse8803.git
+git clone --recurse-submodules git@github.com:yuikns/iphigenia.git
 ```
 
 It is managed by [sbt](http://www.scala-sbt.org/). You can import it into [IntelliJ](https://www.jetbrains.com/idea/).
 
-You can add some more packages via [mvnrepository](http://mvnrepository.com/), copy and paste the path into [project/BuildCSE8803.scala](project/BuildCSE8803.scala)
+You can add some more packages via [mvnrepository](http://mvnrepository.com/), copy and paste the path into [project/BuildIphigenia.scala](project/BuildIphigenia.scala)
 
 After finish your developing, you can use script 
 
