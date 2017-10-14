@@ -2,7 +2,21 @@ import sbt.Keys._
 import sbt._
 
 object CompileSettings extends AutoPlugin {
-  override def trigger = allRequirements
+  val JNIFolderName: String = {
+    val OSName = System.getProperty("os.name").toLowerCase
+    val osFolder = if (OSName.startsWith("mac")) {
+      "mac"
+    } else if (OSName.startsWith("windows")) {
+      "win"
+    } else {
+      "linux"
+    }
+
+    s"lib/jni/$osFolder"
+    // val libPath = Seq("some/common/path", s"lib/native/$folderName").mkString(java.io.File.pathSeparator)
+  }
+
+  override def trigger: PluginTrigger = allRequirements
 
   override def projectSettings = Seq(
     scalacOptions ++= Seq(
@@ -19,7 +33,7 @@ object CompileSettings extends AutoPlugin {
       "-Ywarn-numeric-widen", // Warn when numerics are widened.
       "-Yinline-warnings", //
       "-language:postfixOps" // See the Scala docs for value scala.language.postfixOps for a discussion
-    //,"-target:jvm-1.8" // force use jvm 1.8
+      //,"-target:jvm-1.8" // force use jvm 1.8
     ),
     //javacOptions in compile ++= Seq("-target", "1.8", "-source", "1.8"), // force use jvm 1.8
     compileOrder in Compile := CompileOrder.Mixed,
@@ -29,6 +43,11 @@ object CompileSettings extends AutoPlugin {
       options filterNot (_ == "-Ywarn-dead-code") // Allow dead code in tests (to support using mockito).
     },
     parallelExecution in Test := false,
-    unmanagedBase := baseDirectory.value / "lib")
+    unmanagedBase := baseDirectory.value / "lib",
+    javaOptions in run += s"-Djava.library.path=$JNIFolderName",
+    scalacOptions in run += s"-Djava.library.path=$JNIFolderName",
+    javaOptions in Runtime += s"-Djava.library.path=$JNIFolderName"
+  )
+
 }
 

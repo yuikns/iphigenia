@@ -55,6 +55,10 @@ object BuildIphigenia extends Build {
     "org.apache.spark" % "spark-launcher_2.11" % sparkVersion
   )
 
+  lazy val tensorflowDependencies = Seq[ModuleID](
+    //"org.tensorflow" % "libtensorflow" % "1.0.preview1"
+  )
+
   lazy val linearDependencies = Seq[ModuleID](
     "de.bwaldvogel" % "liblinear" % "1.95"
   )
@@ -89,6 +93,7 @@ object BuildIphigenia extends Build {
       hadoopDependencies ++
       sparkDependencies ++
       linearDependencies ++
+      tensorflowDependencies ++
       xgboostDependencies,
     dependencyOverrides ++= Set(
       "org.scala-lang" % "scala-reflect" % projScalaVersion,
